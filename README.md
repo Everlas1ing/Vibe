@@ -63,3 +63,42 @@ RESTful API: Klare og logiske endepunkter (f.eks. /api/auth/login, /api/posts, /
 Databasehåndtering: Integrasjon med PostgreSQL gjøres via node-postgres med oppkoblingsbasseng (connection pooling) for optimal ytelse, samt parametriserte SQL-spørringer for å forhindre SQL-injeksjon.
 
 Sikkerhetsfokus: Alle sensitive konfigurasjoner (databasepassord, JWT-hemmeligheter) håndteres via .env-filer og er ekskludert fra versjonskontroll (Git).
+
+## Databasemodell (VibeDB)
+Prosjektet bruker PostgreSQL som relasjonsdatabase. Databasen er normalisert og består av 6 hovedtabeller som reflekterer virkelige sammenhenger:
+
+* **users**: Lagrer brukerinformasjon (id, username, email, password_hash).
+* **categories**: Definerer kategorier for redaksjonelt innhold.
+* **articles**: Redaksjonelle artikler (Knyttet til categories via `category_id`).
+* **user_posts**: Brukergenerert innhold (Knyttet til users via `user_id`).
+* **comments**: Kommentarer på artikler (Relasjonstabel knyttet til både `users` og `articles`).
+* **saved_articles**: Lagrede artikler/bokmerker (Relasjonstabel for many-to-many mellom `users` og `articles`).
+
+## API-Endepunkter (Ruter)
+Backend tilbyr et RESTful API for kommunikasjon med frontend. Her er en oversikt over de viktigste rutene:
+
+| Metode | Endepunkt | Beskrivelse | Krever Autentisering |
+|--------|-----------|-------------|----------------------|
+| POST   | `/api/auth/register` | Registrerer ny bruker | Nei |
+| POST   | `/api/auth/login` | Logger inn bruker og returnerer JWT | Nei |
+| GET    | `/api/auth/me` | Henter profil til innlogget bruker | Ja |
+| GET    | `/api/articles` | Henter alle artikler (støtter ?category filter) | Nei |
+| GET    | `/api/posts` | Henter alle innlegg fra brukere | Nei |
+| POST   | `/api/posts` | Oppretter et nytt brukerinnlegg (CRUD) | Ja |
+| PUT    | `/api/posts/:id` | Oppdaterer eksisterende innlegg (CRUD) | Ja (kun eier) |
+| DELETE | `/api/posts/:id` | Sletter et innlegg (CRUD) | Ja (kun eier) |
+| POST   | `/api/saved/:articleId` | Toggler lagring av en artikkel (bokmerke) | Ja |
+
+## GDPR og Personvern (Privacy by Design)
+* **Dataminimering:** Systemet samler kun inn strengt nødvendige data for at applikasjonen skal fungere (brukernavn, e-post og passord). Ingen unødvendig personlig informasjon lagres.
+* **Sikker lagring:** Passord krypteres med `bcryptjs` før lagring i databasen. Selv ved et datainnbrudd vil ikke brukernes faktiske passord bli kompromittert.
+
+## Universell Utforming (UU)
+Frontend er utviklet med hensyn til universell utforming for å være tilgjengelig for flest mulig brukere:
+* **Semantisk HTML:** Bruk av riktige tags (`<main>`, `<nav>`, `<article>`, `<header>`) for skjermlesere.
+* **Tastaturnavigasjon:** Applikasjonen kan navigeres ved hjelp av Tab-tasten.
+* **Kontrast:** Fargepaletten (Tailwind) er valgt med tanke på god lesbarhet og tilstrekkelig kontrast mellom tekst og bakgrunn.
+* **Alt-attributter:** Alle bilder har beskrivende alt-tekster.
+
+## Versjonskontroll (Git)
+Gjennom utviklingsløpet er Git og GitHub brukt konsekvent. Funksjoner er utviklet med egne brancher for å sikre at produksjonskoden forblir stabil, og commits har beskrivende meldinger som forklarer *hva* som er endret og *hvorfor*.
